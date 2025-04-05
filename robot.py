@@ -19,9 +19,6 @@ class Robot:
         self.x += (vl + vr) / 2 * math.cos(self.angle)
         self.y += (vl + vr) / 2 * math.sin(self.angle)
         self.angle += (vr - vl) / self.radius 
-        self.x = max(self.radius, min(self.map_width - self.radius, self.x))
-        self.y = max(self.radius, min(self.map_height - self.radius, self.y))
 
-        
     def get_pos(self):
         return self.x, self.map_height - self.y, self.angle # Flip y coordinate
