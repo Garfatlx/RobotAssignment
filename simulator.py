@@ -5,6 +5,7 @@ import math
 import numpy as np
 
 import Robot
+from const import *
 
 def draw_robot(screen, robot):
     # Draw the robot as a circle
@@ -24,6 +25,8 @@ def draw_robot(screen, robot):
         for j in range(robot.radius,robot.radius + 200):
             checking_x= x + j * math.cos(angle)
             checking_y= y - j * math.sin(angle)
+            checking_x=max(0, min(checking_x, robot.map_width-1))
+            checking_y=max(0, min(checking_y, robot.map_height-1))
             if robot.map[int(checking_x), int(checking_y)] == 1:
                 number= j-robot.radius
                 break
@@ -35,7 +38,6 @@ def draw_robot(screen, robot):
         screen.blit(text, text_rect)
         
 
-
 # Function to draw the map onto the cached surface
 def draw_map_cached(map_surface, map):
     map_surface.fill(WHITE)  # Clear the surface
@@ -45,30 +47,16 @@ def draw_map_cached(map_surface, map):
                 pygame.draw.rect(map_surface, BLACK, (x, y, 1, 1))  # Draw a pixel for the obstacle
 
 
-
-
 # Initialize Pygame
 pygame.init()
 
 # Set up the display
-WIDTH, HEIGHT = 1200, 1000
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Robot Simulation with Speed and Direction")
 
-# Colors
-WHITE = (255, 255, 255)
-BLUE = (0, 0, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)  # For direction line
-
 # Robot properties
-robot_radius = 30
-robot_pos = [WIDTH // 2, HEIGHT // 2]  # Start in the center of the screen
 vl= 0  # Left wheel speed
 vr= 0  # Right wheel speed
-robot_angle = 0  # Initial angle in radians (0 = right)
-max_speed = 5  # Maximum speed limit
-acceleration = 0.02  # Speed change per frame
 
 #create map
 # Assuming the map is a 2D numpy array with 0 for free space and 1 for obstacles
@@ -86,7 +74,7 @@ map_surface.fill(WHITE)  # Fill with background color
 draw_map_cached(map_surface, map)
 
 # Create a robot instance
-robot = Robot.Robot(robot_pos[0], robot_pos[1], robot_angle, robot_radius, map)
+robot = Robot.Robot(WIDTH // 2, HEIGHT // 2, 0, ROBOT_RADIUS, map)
 
 # Font for numbers
 font = pygame.font.SysFont(None, 24)
@@ -110,20 +98,16 @@ while running:
     # movement control
     keys = pygame.key.get_pressed()
     if keys[pygame.K_q]:
-        vl= min(vl + acceleration, max_speed)  
+        vl= min(vl + ACCELERATION, MAX_SPEED)  
     if keys[pygame.K_a]:
-        vl= max(vl - acceleration, -max_speed)  
+        vl= max(vl - ACCELERATION, -MAX_SPEED)  
     if keys[pygame.K_w]:
-        vr= min(vr + acceleration, max_speed)
+        vr= min(vr + ACCELERATION, MAX_SPEED)
     if keys[pygame.K_s]:
-        vr= max(vr - acceleration, -max_speed)
+        vr= max(vr - ACCELERATION, -MAX_SPEED)
     
     robot.move(vl,vr)  # Update robot position based on wheel speeds
-    robot_pos[0], robot_pos[1], robot_angle = robot.get_pos()
-
-    # Keep robot within bounds
-    robot_pos[0] = max(robot_radius, min(WIDTH - robot_radius, robot_pos[0]))
-    robot_pos[1] = max(robot_radius, min(HEIGHT - robot_radius, robot_pos[1]))
+    
 
     # Clear the screen
     screen.fill(WHITE)

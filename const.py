@@ -1,5 +1,5 @@
 # Screen dimensions
-WIDTH, HEIGHT = 600, 600
+WIDTH, HEIGHT = 1200, 1000
 
 # Colors
 WHITE = (255, 255, 255)
@@ -8,7 +8,6 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 
 # Robot properties
-ROBOT_RADIUS = 50
+ROBOT_RADIUS = 30
 MAX_SPEED = 5
-ACCELERATION = 0.1
-TURN_RATE = 0.05
+ACCELERATION = 0.02
