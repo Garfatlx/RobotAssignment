@@ -1,3 +1,5 @@
+# main.py
+
 import pygame
 import math
 import numpy as np
