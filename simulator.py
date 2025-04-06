@@ -63,8 +63,8 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Robot Simulation with Speed and Direction")
 
 # Robot properties
-vl= 0  # Left wheel speed
-vr= 0  # Right wheel speed
+# vl= 0  # Left wheel speed
+# vr= 0  # Right wheel speed
 
 #create map
 # Assuming the map is a 2D numpy array with 0 for free space and 1 for obstacles
@@ -104,15 +104,15 @@ while running:
     # movement control
     keys = pygame.key.get_pressed()
     if keys[pygame.K_q]:
-        vl= min(vl + ACCELERATION, MAX_SPEED) 
+        robot.set_vl(True)
     if keys[pygame.K_a]:
-        vl= max(vl - ACCELERATION, -MAX_SPEED)  
+        robot.set_vl(False)
     if keys[pygame.K_w]:
-        vr= min(vr + ACCELERATION, MAX_SPEED)
+        robot.set_vr(True)
     if keys[pygame.K_s]:
-        vr= max(vr - ACCELERATION, -MAX_SPEED)
+        robot.set_vr(False)
     
-    robot.move(vl,vr)  # Update robot position based on wheel speeds
+    robot.move(robot.vl,robot.vr)  # Update robot position based on wheel speeds
 
     # Clear the screen
     screen.fill(WHITE)
@@ -122,7 +122,7 @@ while running:
 
     draw_robot(screen, robot)  # Draw the robot
 
-    draw_velocity_status(screen, pygame.font.SysFont(None, 24), vl, vr)  # Draw the velocity status
+    draw_velocity_status(screen, pygame.font.SysFont(None, 24), robot.vl, robot.vr)  # Draw the velocity status
     
 
     # Update the display

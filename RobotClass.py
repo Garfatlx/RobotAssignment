@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from const import *
 
 class Robot:
     def __init__(self, x, y, angle,radius,map):
@@ -10,6 +11,8 @@ class Robot:
         self.map = map
         self.map_width = map.shape[0]
         self.map_height = map.shape[1]
+        self.vl = 0
+        self.vr = 0
 
     def move(self, vl, vr):
     # Calculate proposed movement
@@ -79,5 +82,18 @@ class Robot:
         epsilon = 0.1
         self.x = max(self.radius + epsilon, min(self.map_width - self.radius - epsilon, self.x))
         self.y = max(self.radius + epsilon, min(self.map_height - self.radius - epsilon, self.y))
+
     def get_pos(self):
         return self.x, self.y, self.angle # Flip y coordinate
+    
+    def set_vl(self, forward=True):
+        if forward:
+            self.vl = min(self.vl + ACCELERATION, MAX_SPEED) 
+        else:
+            self.vl = max(self.vl - ACCELERATION, -MAX_SPEED) 
+
+    def set_vr(self, forward=True):
+        if forward:
+            self.vr = min(self.vr + ACCELERATION, MAX_SPEED) 
+        else:
+            self.vr = max(self.vr - ACCELERATION, -MAX_SPEED) 
