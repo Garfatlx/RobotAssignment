@@ -10,31 +10,31 @@ from const import *
 def draw_robot(screen, robot):
     # Draw the robot as a circle
     currnt_x, currnt_y, current_angle = robot.get_pos()
-    pygame.draw.circle(screen, BLUE, (int(currnt_x), int(currnt_y)), robot.radius)
+    pygame.draw.circle(screen, BLUE, (int(currnt_x), HEIGHT-1-int(currnt_y)), robot.radius)
 
     # Draw the direction line
     line_length = robot.radius
     line_end_x = currnt_x + line_length * math.cos(robot.angle)
-    line_end_y = currnt_y - line_length * math.sin(robot.angle)
-    pygame.draw.line(screen, RED, (currnt_x, currnt_y), (line_end_x, line_end_y), 3)
+    line_end_y = currnt_y + line_length * math.sin(robot.angle)
+    pygame.draw.line(screen, RED, (currnt_x, HEIGHT-1-currnt_y), (line_end_x, HEIGHT-1-line_end_y), 3)
 
     for i in range(12):
         angle = 2 * math.pi * i / 12
         x = currnt_x + (robot.radius + 20) * math.cos(angle)
-        y = currnt_y - (robot.radius + 20) * math.sin(angle)
-        for j in range(robot.radius,robot.radius + 200):
+        y = currnt_y + (robot.radius + 20) * math.sin(angle)
+        for j in range(0,200):
             checking_x= x + j * math.cos(angle)
-            checking_y= y - j * math.sin(angle)
+            checking_y= y + j * math.sin(angle)
             checking_x=max(0, min(checking_x, robot.map_width-1))
             checking_y=max(0, min(checking_y, robot.map_height-1))
             if robot.map[int(checking_x), int(checking_y)] == 1:
-                number= j-robot.radius
+                number= j
                 break
         else:
             number= 200
 
         text= font.render(str(number), True, BLACK)
-        text_rect = text.get_rect(center=(x, y))
+        text_rect = text.get_rect(center=(x, HEIGHT-1-y))
         screen.blit(text, text_rect)
         
 
@@ -43,7 +43,7 @@ def draw_map_cached(map_surface, map):
     map_surface.fill(WHITE)  # Clear the surface
     for x in range(map.shape[0]):
         for y in range(map.shape[1]):
-            if map[x, y] == 1:  # Assuming 1 represents an obstacle
+            if map[x, map.shape[1]-1-y] == 1:  # Assuming 1 represents an obstacle
                 pygame.draw.rect(map_surface, BLACK, (x, y, 1, 1))  # Draw a pixel for the obstacle
 
 
@@ -83,8 +83,6 @@ font = pygame.font.SysFont(None, 24)
 running = True
 clock = pygame.time.Clock()
 
-
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -98,7 +96,7 @@ while running:
     # movement control
     keys = pygame.key.get_pressed()
     if keys[pygame.K_q]:
-        vl= min(vl + ACCELERATION, MAX_SPEED)  
+        vl= min(vl + ACCELERATION, MAX_SPEED) 
     if keys[pygame.K_a]:
         vl= max(vl - ACCELERATION, -MAX_SPEED)  
     if keys[pygame.K_w]:
@@ -107,7 +105,6 @@ while running:
         vr= max(vr - ACCELERATION, -MAX_SPEED)
     
     robot.move(vl,vr)  # Update robot position based on wheel speeds
-    
 
     # Clear the screen
     screen.fill(WHITE)
