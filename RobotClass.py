@@ -13,6 +13,8 @@ class Robot:
         self.map_height = map.shape[1]
         self.vl = 0
         self.vr = 0
+        self.vl_decay = 0
+        self.vr_decay = 0
 
     def move(self, vl, vr):
     # Calculate proposed movement
@@ -87,13 +89,54 @@ class Robot:
         return self.x, self.y, self.angle # Flip y coordinate
     
     def set_vl(self, forward=True):
+        self.vl_decay = 0
         if forward:
             self.vl = min(self.vl + ACCELERATION, MAX_SPEED) 
         else:
             self.vl = max(self.vl - ACCELERATION, -MAX_SPEED) 
 
     def set_vr(self, forward=True):
+        self.vr_decay = 0
         if forward:
             self.vr = min(self.vr + ACCELERATION, MAX_SPEED) 
         else:
             self.vr = max(self.vr - ACCELERATION, -MAX_SPEED) 
+
+    def apply_vl_decay(self):
+        # Don't decay for small decay counters
+        if self.vl_decay < 10:
+            return self.vl
+
+        # Compute decay strength — grows non-linearly with decay_counter
+        # You can tweak the multiplier and exponent to control how aggressive it is
+        decay_strength = (self.vl_decay - 9) ** 1.2 * 0.0001  # 1.2 is the exponent, 0.01 is the scale
+
+        # Apply decay proportional to the current velocity
+        if self.vl > 0:
+            self.vl -= decay_strength * self.vl
+            self.vl = max(0, self.vl)  # Clamp to zero
+        elif self.vl < 0:
+            self.vl += decay_strength * abs(self.vl)
+            self.vl = min(0, self.vl)  # Clamp to zero
+
+        return self.vl
+    
+
+    def apply_vr_decay(self):
+        # Don't decay for small decay counters
+        if self.vr_decay < 10:
+            return self.vr
+
+        # Compute decay strength — grows non-linearly with decay_counter
+        # You can tweak the multiplier and exponent to control how aggressive it is
+        decay_strength = (self.vr_decay - 9) ** 1.2 * 0.0001  # 1.2 is the exponent, 0.01 is the scale
+
+        # Apply decay proportional to the current velocity
+        if self.vr > 0:
+            self.vr -= decay_strength * self.vr
+            self.vr = max(0, self.vr)  # Clamp to zero
+        elif self.vr < 0:
+            self.vr += decay_strength * abs(self.vr)
+            self.vr = min(0, self.vr)  # Clamp to zero
+
+        return self.vr

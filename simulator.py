@@ -111,6 +111,14 @@ while running:
         robot.set_vr(True)
     if keys[pygame.K_s]:
         robot.set_vr(False)
+
+    if not (keys[pygame.K_q] or keys[pygame.K_a]):
+        robot.vl_decay += 1
+    if not (keys[pygame.K_w] or keys[pygame.K_s]):
+        robot.vr_decay += 1
+
+    # robot.apply_vl_decay() # Decay function for the velocity of the left wheel
+    # robot.apply_vr_decay() # Decay function for the velocity of the right wheel
     
     robot.move(robot.vl,robot.vr)  # Update robot position based on wheel speeds
 
