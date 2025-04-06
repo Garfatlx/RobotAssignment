@@ -4,7 +4,7 @@ import pygame
 import math
 import numpy as np
 
-import Robot
+import RobotClass as Robot
 from const import *
 
 def draw_robot(screen, robot):
