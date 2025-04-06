@@ -46,6 +46,14 @@ def draw_map_cached(map_surface, map):
             if map[x, map.shape[1]-1-y] == 1:  # Assuming 1 represents an obstacle
                 pygame.draw.rect(map_surface, BLACK, (x, y, 1, 1))  # Draw a pixel for the obstacle
 
+# Function to draw the velocity status on the screen
+def draw_velocity_status(screen, font, vl, vr):
+    # Draw the velocity status on the screen
+    vl_text = font.render(f"vL: {vl:.2f}", True, BLACK)
+    vr_text = font.render(f"vR: {vr:.2f}", True, BLACK)
+    screen.blit(vl_text, (10, HEIGHT - 40))
+    screen.blit(vr_text, (10, HEIGHT - 20))
+
 
 # Initialize Pygame
 pygame.init()
@@ -113,6 +121,8 @@ while running:
     screen.blit(map_surface, (0, 0))
 
     draw_robot(screen, robot)  # Draw the robot
+
+    draw_velocity_status(screen, pygame.font.SysFont(None, 24), vl, vr)  # Draw the velocity status
     
 
     # Update the display
