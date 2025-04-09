@@ -88,11 +88,11 @@ map[0,:] = 1  # Top boundary
 map[-1,:] = 1  # Bottom boundary
 map[:,0] = 1  # Left boundary
 map[:,-1] = 1  # Right boundary
-map[WIDTH//2+300:WIDTH//2+400, HEIGHT//2+200:HEIGHT//2+220] = 1  
+# map[WIDTH//2+300:WIDTH//2+400, HEIGHT//2+200:HEIGHT//2+220] = 1  
 map[WIDTH//2-75:WIDTH//2+75, HEIGHT//2-75:HEIGHT//2-74] = 1 
 map[WIDTH//2+74:WIDTH//2+75, HEIGHT//2-75:HEIGHT//2+75] = 1 
-map[WIDTH//2-75:WIDTH//2+75, HEIGHT//2+75:HEIGHT//2+74] = 1 
-map[WIDTH//2-74:WIDTH//2-75, HEIGHT//2+75:HEIGHT//2-75] = 1 
+map[WIDTH//2-75:WIDTH//2+75, HEIGHT//2+74:HEIGHT//2+75] = 1 
+map[WIDTH//2-75:WIDTH//2-74, HEIGHT//2-75:HEIGHT//2+75] = 1 
 
 map_surface = pygame.Surface((WIDTH, HEIGHT))
 map_surface.fill(WHITE)  # Fill with background color
