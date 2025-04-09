@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from const import *
+import pygame
 
 class Robot:
     def __init__(self, x, y, angle,radius,map):
@@ -114,7 +115,7 @@ class Robot:
         # Apply decay proportional to the current velocity
         if self.vl > 0:
             self.vl -= decay_strength * self.vl
-            self.vl = max(0, self.vl)  # Clamp to zero
+            self.vl = max(0, self.vl)  # Clamp to gzero
         elif self.vl < 0:
             self.vl += decay_strength * abs(self.vl)
             self.vl = min(0, self.vl)  # Clamp to zero
@@ -140,3 +141,34 @@ class Robot:
             self.vr = min(0, self.vr)  # Clamp to zero
 
         return self.vr
+    
+
+    def draw_robot(self, screen, font):
+        # Draw the robot as a circle
+        currnt_x, currnt_y, current_angle = self.get_pos()
+        pygame.draw.circle(screen, BLUE, (int(currnt_x), HEIGHT-1-int(currnt_y)), self.radius)
+
+        # Draw the direction line
+        line_length = self.radius
+        line_end_x = currnt_x + line_length * math.cos(self.angle)
+        line_end_y = currnt_y + line_length * math.sin(self.angle)
+        pygame.draw.line(screen, RED, (currnt_x, HEIGHT-1-currnt_y), (line_end_x, HEIGHT-1-line_end_y), 3)
+
+        for i in range(12):
+            angle = 2 * math.pi * i / 12
+            x = currnt_x + (self.radius + 20) * math.cos(angle)
+            y = currnt_y + (self.radius + 20) * math.sin(angle)
+            for j in range(0,200):
+                checking_x= x + j * math.cos(angle)
+                checking_y= y + j * math.sin(angle)
+                checking_x=max(0, min(checking_x, self.map_width-1))
+                checking_y=max(0, min(checking_y, self.map_height-1))
+                if self.map[int(checking_x), int(checking_y)] == 1:
+                    number= j
+                    break
+            else:
+                number= 200
+
+            text= font.render(str(number), True, BLACK)
+            text_rect = text.get_rect(center=(x, HEIGHT-1-y))
+            screen.blit(text, text_rect)

@@ -7,35 +7,7 @@ import numpy as np
 import RobotClass as Robot
 from const import *
 
-def draw_robot(screen, robot):
-    # Draw the robot as a circle
-    currnt_x, currnt_y, current_angle = robot.get_pos()
-    pygame.draw.circle(screen, BLUE, (int(currnt_x), HEIGHT-1-int(currnt_y)), robot.radius)
 
-    # Draw the direction line
-    line_length = robot.radius
-    line_end_x = currnt_x + line_length * math.cos(robot.angle)
-    line_end_y = currnt_y + line_length * math.sin(robot.angle)
-    pygame.draw.line(screen, RED, (currnt_x, HEIGHT-1-currnt_y), (line_end_x, HEIGHT-1-line_end_y), 3)
-
-    for i in range(12):
-        angle = 2 * math.pi * i / 12
-        x = currnt_x + (robot.radius + 20) * math.cos(angle)
-        y = currnt_y + (robot.radius + 20) * math.sin(angle)
-        for j in range(0,200):
-            checking_x= x + j * math.cos(angle)
-            checking_y= y + j * math.sin(angle)
-            checking_x=max(0, min(checking_x, robot.map_width-1))
-            checking_y=max(0, min(checking_y, robot.map_height-1))
-            if robot.map[int(checking_x), int(checking_y)] == 1:
-                number= j
-                break
-        else:
-            number= 200
-
-        text= font.render(str(number), True, BLACK)
-        text_rect = text.get_rect(center=(x, HEIGHT-1-y))
-        screen.blit(text, text_rect)
         
 
 # Function to draw the map onto the cached surface
@@ -117,6 +89,10 @@ map[-1,:] = 1  # Bottom boundary
 map[:,0] = 1  # Left boundary
 map[:,-1] = 1  # Right boundary
 map[WIDTH//2+300:WIDTH//2+400, HEIGHT//2+200:HEIGHT//2+220] = 1  
+map[WIDTH//2-75:WIDTH//2+75, HEIGHT//2-75:HEIGHT//2-74] = 1 
+map[WIDTH//2+74:WIDTH//2+75, HEIGHT//2-75:HEIGHT//2+75] = 1 
+map[WIDTH//2-75:WIDTH//2+75, HEIGHT//2+75:HEIGHT//2+74] = 1 
+map[WIDTH//2-74:WIDTH//2-75, HEIGHT//2+75:HEIGHT//2-75] = 1 
 
 map_surface = pygame.Surface((WIDTH, HEIGHT))
 map_surface.fill(WHITE)  # Fill with background color
@@ -154,7 +130,7 @@ while running:
     # Blit the cached map surface onto the screen
     screen.blit(map_surface, (0, 0))
 
-    draw_robot(screen, robot)  # Draw the robot
+    robot.draw_robot(screen, font)  # Draw the robot
 
     draw_velocity_status(screen, pygame.font.SysFont(None, 24), robot.vl, robot.vr)  # Draw the velocity status
     
