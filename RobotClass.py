@@ -87,7 +87,7 @@ class Robot:
         self.y = max(self.radius + epsilon, min(self.map_height - self.radius - epsilon, self.y))
 
     def get_pos(self):
-        return self.x, self.y, self.angle # Flip y coordinate
+        return self.x, self.y, self.angle 
     
     def set_vl(self, forward=True):
         self.vl_decay = 0
@@ -156,19 +156,21 @@ class Robot:
 
         for i in range(12):
             angle = 2 * math.pi * i / 12
-            x = currnt_x + (self.radius + 20) * math.cos(angle)
-            y = currnt_y + (self.radius + 20) * math.sin(angle)
+            x = currnt_x + (self.radius) * math.cos(angle)
+            y = currnt_y + (self.radius) * math.sin(angle)
+            text_x = currnt_x + (self.radius+20) * math.cos(angle)
+            text_y = currnt_y + (self.radius+20) * math.sin(angle)
             for j in range(0,200):
                 checking_x= x + j * math.cos(angle)
                 checking_y= y + j * math.sin(angle)
                 checking_x=max(0, min(checking_x, self.map_width-1))
                 checking_y=max(0, min(checking_y, self.map_height-1))
                 if self.map[int(checking_x), int(checking_y)] == 1:
-                    number= j
+                    number= j-1
                     break
             else:
                 number= 200
 
             text= font.render(str(number), True, BLACK)
-            text_rect = text.get_rect(center=(x, HEIGHT-1-y))
+            text_rect = text.get_rect(center=(text_x, HEIGHT-1-text_y))
             screen.blit(text, text_rect)
