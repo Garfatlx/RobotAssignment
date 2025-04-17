@@ -6,6 +6,9 @@ import numpy as np
 
 import RobotClass as Robot
 from const import *
+from Beacon import Beacon
+from BeaconSensor import BeaconSensor
+
 
 
         
@@ -76,9 +79,8 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Robot Simulation with Speed and Direction")
 
-# Robot properties
-# vl= 0  # Left wheel speed
-# vr= 0  # Right wheel speed
+
+
 
 #create map
 # Assuming the map is a 2D numpy array with 0 for free space and 1 for obstacles
@@ -102,6 +104,18 @@ draw_map_cached(map_surface, map)
 
 # Create a robot instance
 robot = Robot.Robot(WIDTH // 2, HEIGHT -50, -1.2, ROBOT_RADIUS, map)
+
+# Add Beacons
+
+beacons = [
+    Beacon(100, 100, beacon_id=1),
+    Beacon(500, 300, beacon_id=2),
+    Beacon(700, 500, beacon_id=3)
+]
+
+# Add a beacon sensor to the robot
+beacon_sensor = BeaconSensor(robot, relative_angle=0, fov=math.radians(60), range=300, precision=5)
+robot.add_sensor(beacon_sensor)
 
 # Font for numbers
 font = pygame.font.SysFont(None, 24)
@@ -132,6 +146,13 @@ while running:
     screen.blit(map_surface, (0, 0))
 
     robot.draw_robot(screen, font)  # Draw the robot
+
+    # Draw beacons
+    for beacon in beacons:
+        beacon.draw(screen)
+
+    # Draw sensor readings (only BeaconSensor supports this)
+    beacon_sensor.draw_detected(screen, font, beacons)
 
     draw_velocity_status(screen, pygame.font.SysFont(None, 24), robot.vl, robot.vr)  # Draw the velocity status
     
