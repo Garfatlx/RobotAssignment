@@ -89,10 +89,11 @@ map[-1,:] = 1  # Bottom boundary
 map[:,0] = 1  # Left boundary
 map[:,-1] = 1  # Right boundary
 # map[WIDTH//2+300:WIDTH//2+400, HEIGHT//2+200:HEIGHT//2+220] = 1  
-map[WIDTH//2-75:WIDTH//2+75, HEIGHT//2-75:HEIGHT//2-74] = 1 
-map[WIDTH//2+74:WIDTH//2+75, HEIGHT//2-75:HEIGHT//2+75] = 1 
-map[WIDTH//2-75:WIDTH//2+75, HEIGHT//2+74:HEIGHT//2+75] = 1 
-map[WIDTH//2-75:WIDTH//2-74, HEIGHT//2-75:HEIGHT//2+75] = 1 
+#map[WIDTH//2-75:WIDTH//2+75, HEIGHT//2-75:HEIGHT//2-74] = 1 
+#map[WIDTH//2+299:WIDTH//2+300, HEIGHT//2-75:HEIGHT//2+75] = 1 
+map[WIDTH//2+99:WIDTH//2+100, HEIGHT//2-HEIGHT//2:HEIGHT//2+HEIGHT//2] = 1 
+#map[WIDTH//2-75:WIDTH//2+75, HEIGHT//2+74:HEIGHT//2+75] = 1 
+#map[WIDTH//2-75:WIDTH//2-74, HEIGHT//2-75:HEIGHT//2+75] = 1 
 
 map_surface = pygame.Surface((WIDTH, HEIGHT))
 map_surface.fill(WHITE)  # Fill with background color
@@ -100,7 +101,7 @@ map_surface.fill(WHITE)  # Fill with background color
 draw_map_cached(map_surface, map)
 
 # Create a robot instance
-robot = Robot.Robot(WIDTH // 2, HEIGHT // 2, 0, ROBOT_RADIUS, map)
+robot = Robot.Robot(WIDTH // 2, HEIGHT -50, -1.2, ROBOT_RADIUS, map)
 
 # Font for numbers
 font = pygame.font.SysFont(None, 24)

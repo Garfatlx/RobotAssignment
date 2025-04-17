@@ -2,20 +2,30 @@ import math
 import numpy as np
 from const import *
 import pygame
+import Sensor
 
 class Robot:
-    def __init__(self, x, y, angle,radius,map):
+    def __init__(self, x, y, angle, radius, map_data):
         self.x = x
         self.y = y
         self.radius = radius
         self.angle = angle  # Angle in radians
-        self.map = map
-        self.map_width = map.shape[0]
-        self.map_height = map.shape[1]
-        self.vl = 0
-        self.vr = 0
+        self.map = map_data
+        self.map_width = map_data.shape[0]
+        self.map_height = map_data.shape[1]
+        self.vl = 5
+        self.vr = 5
         self.vl_decay = 0
         self.vr_decay = 0
+        self.sensors = []
+
+        for i in range(12):
+            angle = 2 * math.pi * i / 12
+            sensor = Sensor.Sensor(self, angle, precision=2)
+            self.add_sensor(sensor)
+
+    def add_sensor(self, sensor):
+        self.sensors.append(sensor)
 
     def move(self, vl, vr):
         # Calculate proposed movement
@@ -153,23 +163,26 @@ class Robot:
         line_end_y = currnt_y + line_length * math.sin(self.angle)
         pygame.draw.line(screen, RED, (currnt_x, HEIGHT-1-currnt_y), (line_end_x, HEIGHT-1-line_end_y), 3)
 
-        for i in range(12):
-            angle = 2 * math.pi * i / 12
-            x = currnt_x + (self.radius) * math.cos(angle)
-            y = currnt_y + (self.radius) * math.sin(angle)
-            text_x = currnt_x + (self.radius+20) * math.cos(angle)
-            text_y = currnt_y + (self.radius+20) * math.sin(angle)
-            for j in range(0,200):
-                checking_x= x + j * math.cos(angle)
-                checking_y= y + j * math.sin(angle)
-                checking_x=max(0, min(checking_x, self.map_width-1))
-                checking_y=max(0, min(checking_y, self.map_height-1))
-                if self.map[int(checking_x), int(checking_y)] == 1:
-                    number= j-1
-                    break
-            else:
-                number= 200
+        for sensor in self.sensors:
+            sensor.draw_reading(screen, font, self.map)
 
-            text= font.render(str(number), True, BLACK)
-            text_rect = text.get_rect(center=(text_x, HEIGHT-1-text_y))
-            screen.blit(text, text_rect)
+        # for i in range(12):
+        #     angle = 2 * math.pi * i / 12
+        #     x = currnt_x + (self.radius) * math.cos(angle)
+        #     y = currnt_y + (self.radius) * math.sin(angle)
+        #     text_x = currnt_x + (self.radius+20) * math.cos(angle)
+        #     text_y = currnt_y + (self.radius+20) * math.sin(angle)
+        #     for j in range(0,200):
+        #         checking_x= x + j * math.cos(angle)
+        #         checking_y= y + j * math.sin(angle)
+        #         checking_x=max(0, min(checking_x, self.map_width-1))
+        #         checking_y=max(0, min(checking_y, self.map_height-1))
+        #         if self.map[int(checking_x), int(checking_y)] == 1:
+        #             number= j-1
+        #             break
+        #     else:
+        #         number= 200
+
+        #     text= font.render(str(number), True, BLACK)
+        #     text_rect = text.get_rect(center=(text_x, HEIGHT-1-text_y))
+        #     screen.blit(text, text_rect)
