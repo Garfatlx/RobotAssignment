@@ -28,7 +28,7 @@ class BeaconSensor(Sensor):
 
             if abs(angle_diff) <= self.fov / 2:
                 noisy_distance = distance + self._get_error()
-                detected.append((beacon.id, noisy_distance, angle_diff))
+                detected.append((beacon.id, noisy_distance, angle_diff, beacon))
 
         return detected
 
@@ -43,8 +43,10 @@ class BeaconSensor(Sensor):
 
     def draw_detected(self, screen, font, beacons):
         detected = self.detect_beacons(beacons)
-        for beacon_id, distance, angle_offset in detected:
+        for beacon_id, distance, angle_offset, beacon in detected:
             x = self.robot.x + (self.robot.radius + 20) * math.cos(self.robot.angle + self.relative_angle)
             y = self.robot.y + (self.robot.radius + 20) * math.sin(self.robot.angle + self.relative_angle)
             text = font.render(f"B{beacon_id}", True, GREEN)
             screen.blit(text, (x, HEIGHT - 1 - y))
+            pygame.draw.line(screen, GREEN, (self.robot.x, HEIGHT - 1 - self.robot.y), (beacon.x, HEIGHT - 1 - beacon.y), 2)
+
