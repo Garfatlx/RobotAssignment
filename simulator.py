@@ -93,7 +93,7 @@ robot = Robot.Robot(WIDTH // 2, HEIGHT -50, -1.2, ROBOT_RADIUS, map)
 
 
 # Add a beacon sensor to the robot
-beacon_sensor = BeaconSensor(robot, relative_angle=0, fov=math.radians(60), range=300, precision=5)
+beacon_sensor = BeaconSensor(robot, relative_angle=0, fov=math.radians(360), range=200, precision=5)
 robot.add_sensor(beacon_sensor)
 
 # Font for numbers
@@ -117,6 +117,10 @@ while running:
     movement_control(robot)
     
     robot.move(robot.vl,robot.vr)  # Update robot position based on wheel speeds
+
+    #get prediction
+    robot.kalman_filter(beacon_sensor.get_observed_pose(beacons))  
+    # robot.kalman_filter(beacon_sensor.get_observed_pose_by_scanning(beacons))
 
     # Clear the screen
     screen.fill(WHITE)

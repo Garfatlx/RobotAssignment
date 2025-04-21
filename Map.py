@@ -29,6 +29,8 @@ def make_map(type='empty'):
         beacons.append(Beacon(100, 100, beacon_id=1))
         beacons.append(Beacon(500, 300, beacon_id=2))
         beacons.append(Beacon(700, 500, beacon_id=3))
+        beacons.append(Beacon(450, 350, beacon_id=4))
+        beacons.append(Beacon(600, 400, beacon_id=5))
 
         return map, beacons, map_surface
     elif type == 'maze':
