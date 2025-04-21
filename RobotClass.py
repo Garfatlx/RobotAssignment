@@ -18,6 +18,7 @@ class Robot:
         self.vl_decay = 0
         self.vr_decay = 0
         self.sensors = []
+        self.path = []
 
         for i in range(12):
             angle = 2 * math.pi * i / 12
@@ -94,6 +95,8 @@ class Robot:
         self.x = max(self.radius + epsilon, min(self.map_width - self.radius - epsilon, self.x))
         self.y = max(self.radius + epsilon, min(self.map_height - self.radius - epsilon, self.y))
 
+        self.path.append((self.x, self.y))
+
 
     def get_pos(self):
         return self.x, self.y, self.angle 
@@ -152,7 +155,15 @@ class Robot:
         return self.vr
     
 
+    def draw_path(self, screen):
+        # Draw robot path
+        if len(self.path) > 1:
+            pygame.draw.lines(screen, BLACK, False, [(int(x), HEIGHT - 1 - int(y)) for x, y in self.path], 2)
+
+    
+
     def draw_robot(self, screen, font):
+        self.draw_path(screen)
         # Draw the robot as a circle
         currnt_x, currnt_y, current_angle = self.get_pos()
         pygame.draw.circle(screen, BLUE, (int(currnt_x), HEIGHT-1-int(currnt_y)), self.radius)
