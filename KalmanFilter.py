@@ -3,6 +3,7 @@ import math
 import random
 
 from BaseFilter import BaseFilter
+from const import *
 
 class KalmanFilter(BaseFilter):
     def __init__(self, initial_pose, initial_covariance, radius, movement_noise):
@@ -18,8 +19,8 @@ class KalmanFilter(BaseFilter):
         error_vr = (random.uniform(-self.noise, self.noise) / 100)
         error_angle = random.uniform(-2 * math.pi * self.noise / 100, 2 * math.pi * self.noise / 100)
 
-        kalman_vl = max(min(vl + error_vl, 1), -1)
-        kalman_vr = max(min(vr + error_vr, 1), -1)
+        kalman_vl = max(min(vl + error_vl, MAX_SPEED), -MAX_SPEED)
+        kalman_vr = max(min(vr + error_vr, MAX_SPEED), -MAX_SPEED)
         kalman_angle = angle + error_angle
 
         # Prediction step

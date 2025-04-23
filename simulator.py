@@ -38,7 +38,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    movement_control(robot, "reverse")  
+    movement_control(robot, "direct")  
 
     robot.move(robot.vl, robot.vr)
 
