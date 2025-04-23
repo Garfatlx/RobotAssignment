@@ -3,9 +3,10 @@ import numpy as np
 from const import *
 import pygame
 import Sensor
+import random
 
 class Robot:
-    def __init__(self, x, y, angle, radius, map_data, initial_predicted_pose=None, initial_predicted_covariance=None):
+    def __init__(self, x, y, angle, radius, map_data, initial_predicted_pose=None, initial_predicted_covariance=None, sensor_precision=20, movement_noise=0):
         self.x = x
         self.y = y
         self.radius = radius
@@ -15,6 +16,9 @@ class Robot:
         self.map_height = map_data.shape[1]
         self.vl = 1
         self.vr = 1
+        self.kalman_vl = 1
+        self.kalman_vr = 1
+        self.movement_noise = movement_noise
         self.vl_decay = 0
         self.vr_decay = 0
         self.sensors = []
@@ -25,7 +29,7 @@ class Robot:
 
         for i in range(12):
             angle = 2 * math.pi * i / 12
-            sensor = Sensor.Sensor(self, angle, precision=2)
+            sensor = Sensor.Sensor(self, angle, precision=sensor_precision)
             self.add_sensor(sensor)
 
     def add_sensor(self, sensor):
@@ -185,6 +189,18 @@ class Robot:
             sensor.draw_reading(screen, font, self.map)
 
     def kalman_filter(self, z):
+        # Kalman filter update step
+        error_vl = (random.uniform(-self.movement_noise, self.movement_noise) / 100) * MAX_SPEED
+        error_vr = (random.uniform(-self.movement_noise, self.movement_noise) / 100) * MAX_SPEED
+        print(f"vl: {self.vl}, vr: {self.vr}")
+        print(f"error_vl: {error_vl}, error_vr: {error_vr}")
+        print(f"kalman_vl: {self.kalman_vl}, kalman_vr: {self.kalman_vr}")
+        self.kalman_vl = min(self.vl + error_vl, MAX_SPEED)
+        self.kalman_vl = max(self.vl + error_vl, -MAX_SPEED)
+
+        self.kalman_vr = min(self.vr + error_vr, MAX_SPEED)
+        self.kalman_vr = max(self.vr + error_vr, -MAX_SPEED)
+
         A= np.array([[1, 0, 0],
                      [0, 1, 0],
                      [0, 0, 1]])
@@ -193,8 +209,9 @@ class Robot:
         B= np.array([[math.cos(self.angle), 0],
                      [math.sin(self.angle), 0],
                      [0, 1]])
-        u = np.array([[(self.vl+self.vr)/2],
-                     [(self.vr-self.vl)/self.radius]])
+        
+        u = np.array([[(self.kalman_vl+self.kalman_vr)/2],
+                     [(self.kalman_vr-self.kalman_vl)/self.radius]])
         
         R= np.array([[0.1, 0, 0],
                      [0, 0.1, 0],
