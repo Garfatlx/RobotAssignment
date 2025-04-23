@@ -18,6 +18,7 @@ class Robot:
         self.vr = 1
         self.kalman_vl = 1
         self.kalman_vr = 1
+        self.kalman_angle = 0
         self.movement_noise = movement_noise
         self.vl_decay = 0
         self.vr_decay = 0
@@ -192,11 +193,15 @@ class Robot:
         # Kalman filter update step
         error_vl = (random.uniform(-self.movement_noise, self.movement_noise) / 100) * MAX_SPEED
         error_vr = (random.uniform(-self.movement_noise, self.movement_noise) / 100) * MAX_SPEED
+        error_angle = random.uniform((-2 * math.pi) * (self.movement_noise / 100), (2 * math.pi) * (self.movement_noise / 100))
         print(f"vl: {self.vl}, vr: {self.vr}")
         print(f"error_vl: {error_vl}, error_vr: {error_vr}")
         print(f"kalman_vl: {self.kalman_vl}, kalman_vr: {self.kalman_vr}")
         self.kalman_vl = min(self.vl + error_vl, MAX_SPEED)
         self.kalman_vl = max(self.vl + error_vl, -MAX_SPEED)
+
+        self.kalman_angle = min(self.angle + error_angle, 2 * math.pi)
+        self.kalman_angle = max(self.angle + error_angle, -2 * math.pi)
 
         self.kalman_vr = min(self.vr + error_vr, MAX_SPEED)
         self.kalman_vr = max(self.vr + error_vr, -MAX_SPEED)
@@ -206,8 +211,8 @@ class Robot:
                      [0, 0, 1]])
         miu= self.predicted_pose.reshape(3, 1)
 
-        B= np.array([[math.cos(self.angle), 0],
-                     [math.sin(self.angle), 0],
+        B= np.array([[math.cos(self.kalman_angle), 0],
+                     [math.sin(self.kalman_angle), 0],
                      [0, 1]])
         
         u = np.array([[(self.kalman_vl+self.kalman_vr)/2],
