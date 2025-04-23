@@ -6,17 +6,28 @@ from BaseFilter import BaseFilter
 from const import *
 
 class KalmanFilter(BaseFilter):
-    def __init__(self, initial_pose, initial_covariance, radius, movement_noise):
+    def __init__(self, initial_pose, initial_covariance, radius, movement_noise, bias_strength=0.1):
         self.pose = initial_pose.reshape(3, 1)
         self.covariance = initial_covariance
         self.radius = radius
         self.noise = movement_noise
+        self.bias_strength = bias_strength
         self.path = []
 
+        # Add persistent velocity bias (e.g., motor calibration drift)
+        self.vl_bias = random.uniform(-bias_strength, bias_strength)
+        self.vr_bias = random.uniform(-bias_strength, bias_strength)
+
     def update(self, vl, vr, angle, z):
+        # Slowly evolve the bias to simulate long-term drift
+        self.vl_bias += random.uniform(-0.001, 0.001)
+        self.vr_bias += random.uniform(-0.001, 0.001)
+        self.vl_bias = max(min(self.vl_bias, self.bias_strength), -self.bias_strength)
+        self.vr_bias = max(min(self.vr_bias, self.bias_strength), -self.bias_strength)
+
         # Add noise to motion commands
-        error_vl = (random.uniform(-self.noise, self.noise) / 100)
-        error_vr = (random.uniform(-self.noise, self.noise) / 100)
+        error_vl = (random.uniform(-self.noise, self.noise) / 100) + self.vl_bias
+        error_vr = (random.uniform(-self.noise, self.noise) / 100) + self.vr_bias
         error_angle = random.uniform(-2 * math.pi * self.noise / 100, 2 * math.pi * self.noise / 100)
 
         kalman_vl = max(min(vl + error_vl, MAX_SPEED), -MAX_SPEED)

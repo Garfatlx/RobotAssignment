@@ -88,7 +88,6 @@ class BeaconSensor(Sensor):
 
         x = int(round(x))
         y = int(round(y))
-        print("x, y, angle", x, y, angle)
         return [x, y, angle]
     
     def get_observed_pose_by_scanning(self, beacons):
