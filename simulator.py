@@ -83,7 +83,7 @@ pygame.display.set_caption("Robot Simulation with Speed and Direction")
 
 
 
-map, beacons, map_surface = Map.make_map(type='starter')
+map, beacons, map_surface = Map.make_map(type='spokes')
 
 
 draw_map_cached(map_surface, map)

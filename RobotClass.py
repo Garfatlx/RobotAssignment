@@ -1,38 +1,41 @@
 import math
 import numpy as np
-from const import *
 import pygame
 import Sensor
 import random
+
+from const import *
+from KalmanFilter import KalmanFilter
 
 class Robot:
     def __init__(self, x, y, angle, radius, map_data, initial_predicted_pose=None, initial_predicted_covariance=None, sensor_precision=20, movement_noise=0):
         self.x = x
         self.y = y
-        self.radius = radius
         self.angle = angle  # Angle in radians
+        self.radius = radius
         self.map = map_data
         self.map_width = map_data.shape[0]
         self.map_height = map_data.shape[1]
+
         self.vl = 1
         self.vr = 1
-        self.kalman_vl = 1
-        self.kalman_vr = 1
-        self.kalman_angle = 0
-        self.movement_noise = movement_noise
         self.vl_decay = 0
         self.vr_decay = 0
-        self.sensors = []
+        self.movement_noise = movement_noise
+        
         self.path = []
-        self.predicted_pose = initial_predicted_pose if initial_predicted_pose is not None else np.array([x, y, angle])
-        self.predicted_covariance = initial_predicted_covariance if initial_predicted_covariance is not None else np.eye(3) * 0.1
-        self.predicted_path=[]
 
+        self.sensors = []
         for i in range(12):
             angle = 2 * math.pi * i / 12
             sensor = Sensor.Sensor(self, angle, precision=sensor_precision)
             self.add_sensor(sensor)
 
+        initial_pose = np.array([[x], [y], [angle]])
+        initial_covariance = np.eye(3) * 0.1
+        self.kalman = KalmanFilter(initial_pose, initial_covariance, radius, movement_noise)
+
+        
     def add_sensor(self, sensor):
         self.sensors.append(sensor)
 
@@ -168,10 +171,10 @@ class Robot:
         if len(self.path) > 1:
             pygame.draw.lines(screen, BLACK, False, [(int(x), HEIGHT - 1 - int(y)) for x, y in self.path], 2)
     def draw_predicted_path(self, screen):
-        # Draw predicted path
-        if len(self.path) > 1:
-            pygame.draw.lines(screen, BLUE, False, [(int(x), HEIGHT - 1 - int(y)) for x, y in self.predicted_path], 2)
-    
+        path = self.kalman.get_path()
+        if len(path) > 1:
+            pygame.draw.lines(screen, BLUE, False, [(int(x), HEIGHT - 1 - int(y)) for x, y in path], 2)
+
 
     def draw_robot(self, screen, font):
         self.draw_path(screen)
@@ -189,61 +192,6 @@ class Robot:
         for sensor in self.sensors:
             sensor.draw_reading(screen, font, self.map)
 
+    
     def kalman_filter(self, z):
-        # Kalman filter update step
-        error_vl = (random.uniform(-self.movement_noise, self.movement_noise) / 100) * MAX_SPEED
-        error_vr = (random.uniform(-self.movement_noise, self.movement_noise) / 100) * MAX_SPEED
-        error_angle = random.uniform((-2 * math.pi) * (self.movement_noise / 100), (2 * math.pi) * (self.movement_noise / 100))
-        print(f"vl: {self.vl}, vr: {self.vr}")
-        print(f"error_vl: {error_vl}, error_vr: {error_vr}")
-        print(f"kalman_vl: {self.kalman_vl}, kalman_vr: {self.kalman_vr}")
-        self.kalman_vl = min(self.vl + error_vl, MAX_SPEED)
-        self.kalman_vl = max(self.vl + error_vl, -MAX_SPEED)
-
-        self.kalman_angle = min(self.angle + error_angle, 2 * math.pi)
-        self.kalman_angle = max(self.angle + error_angle, -2 * math.pi)
-
-        self.kalman_vr = min(self.vr + error_vr, MAX_SPEED)
-        self.kalman_vr = max(self.vr + error_vr, -MAX_SPEED)
-
-        A= np.array([[1, 0, 0],
-                     [0, 1, 0],
-                     [0, 0, 1]])
-        miu= self.predicted_pose.reshape(3, 1)
-
-        B= np.array([[math.cos(self.kalman_angle), 0],
-                     [math.sin(self.kalman_angle), 0],
-                     [0, 1]])
-        
-        u = np.array([[(self.kalman_vl+self.kalman_vr)/2],
-                     [(self.kalman_vr-self.kalman_vl)/self.radius]])
-        
-        R= np.array([[0.1, 0, 0],
-                     [0, 0.1, 0],
-                     [0, 0, 0.1]])
-        miu_prdicted = A @ miu + B @ u
-        cov_prdicted = A @ self.predicted_covariance @ A.T + R
-        if len(z) == 0:
-            self.predicted_pose = miu_prdicted
-            self.predicted_covariance = cov_prdicted
-            self.predicted_path.append((self.predicted_pose[0], self.predicted_pose[1]))
-            return
-        
-        C= np.array([[1, 0, 0],
-                     [0, 1, 0],
-                     [0, 0, 1]])
-        Q= np.array([[0.1, 0, 0],
-                     [0, 0.1, 0],
-                     [0, 0, 0.1]])
-        K= cov_prdicted @ C.T @ np.linalg.inv(C @ cov_prdicted @ C.T + Q)
-        z = np.array(z).reshape(3, 1)
-        miu = miu_prdicted + K @ (z - C @ miu_prdicted)
-        self.predicted_covariance = (np.eye(3) - K @ C) @ cov_prdicted
-        self.predicted_pose = miu
-        self.predicted_path.append((self.predicted_pose[0], self.predicted_pose[1]))
-
-
-        
-
-        
-        
+        self.kalman.update(self.vl, self.vr, self.angle, z)
