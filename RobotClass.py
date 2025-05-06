@@ -7,6 +7,7 @@ import random
 from const import *
 from KalmanFilter import KalmanFilter
 from ExtendedKalmanFilter import ExtendedKalmanFilter
+from skimage.draw import line
 
 class Robot:
     def __init__(self, x, y, angle, radius, map_data, initial_predicted_pose=None, initial_predicted_covariance=None, sensor_precision=20, movement_noise=0, bias_strength=0):
@@ -17,6 +18,9 @@ class Robot:
         self.map = map_data
         self.map_width = map_data.shape[0]
         self.map_height = map_data.shape[1]
+        self.grid_scale = 10 # Normal resoulution leads to lags so scaled down 10 pixel a tile
+        self.mapped_grid = np.zeros((self.map_height // self.grid_scale, self.map_width // self.grid_scale))
+
 
         self.vl = 1
         self.vr = 1
@@ -191,8 +195,68 @@ class Robot:
         pygame.draw.line(screen, RED, (currnt_x, HEIGHT-1-currnt_y), (line_end_x, HEIGHT-1-line_end_y), 3)
 
         for sensor in self.sensors:
-            sensor.draw_reading(screen, font, self.map)
+            distance = sensor.draw_reading(screen, font, self.map)
+            self.update_map(distance, sensor.relative_angle)
 
+    # def update_map(self, distance, relative_angle):
+    #     # similar logic to the sensor function in reverse, separated out to account for change in sensor logic
+    #     angle = self.kalman.pose[2][0] + relative_angle
+    #     sensor_x = int(round(self.kalman.pose[0][0] + self.radius * math.cos(angle)))
+    #     sensor_y = int(round(self.kalman.pose[1][0] + self.radius * math.sin(angle)))  
+    #     end_x = np.clip(int(round(sensor_x + distance * np.cos(angle))),0,self.mapped_grid.shape[1]-1)
+    #     end_y = np.clip(int(round(sensor_y + distance * np.cos(angle))),0,self.mapped_grid.shape[0]-1)
+        
+    #     # determining points in the grid that a line with our angle and distance passed through
+    #     row, column = line(sensor_y, sensor_x, end_y, end_x)
+    #     for cell in list(zip(row, column)):
+    #         y, x = cell
+    #         if y < 0 or y >= self.mapped_grid.shape[0] or x < 0 or x >= self.mapped_grid.shape[1]:
+    #             break
+    #         self.mapped_grid[cell] += np.log(0.3 / 0.7)  # log-odds of free
+    #     if distance < 200:
+    #         self.mapped_grid[end_y, end_x] += np.log(0.9 / 0.1)  # log-odds of occupied
+
+    def update_map(self, distance, relative_angle):
+        """
+        update the occupancy grid map 
+        In: 
+            distance: distance of sensor to obstacle
+            relative_angle: angle of sensor relative to robot
+        Out:
+            No real output but map gets updates
+        """
+        angle = self.kalman.pose[2][0] + relative_angle
+
+        sensor_world_x = self.kalman.pose[0][0] + self.radius * math.cos(angle)
+        sensor_world_y = self.kalman.pose[1][0] + self.radius * math.sin(angle)
+
+        end_world_x = sensor_world_x + distance * math.cos(angle)
+        end_world_y = sensor_world_y + distance * math.sin(angle)
+
+        sensor_grid_y, sensor_grid_x = self.world_to_grid(sensor_world_x, sensor_world_y, self.grid_scale)
+        end_grid_y, end_grid_x = self.world_to_grid(end_world_x, end_world_y, self.grid_scale)
+
+        sensor_grid_x = np.clip(sensor_grid_x, 0, self.mapped_grid.shape[1] - 1)
+        sensor_grid_y = np.clip(sensor_grid_y, 0, self.mapped_grid.shape[0] - 1)
+        end_grid_x = np.clip(end_grid_x, 0, self.mapped_grid.shape[1] - 1)
+        end_grid_y = np.clip(end_grid_y, 0, self.mapped_grid.shape[0] - 1)
+
+        row_indices, col_indices = line(sensor_grid_y, sensor_grid_x, end_grid_y, end_grid_x)
+
+        for y, x in zip(row_indices[:-1], col_indices[:-1]):
+            if 0 <= y < self.mapped_grid.shape[0] and 0 <= x < self.mapped_grid.shape[1]:
+                self.mapped_grid[y, x] += np.log(0.3 / 0.7)  # free
+
+        if distance < 200:  
+            if 0 <= end_grid_y < self.mapped_grid.shape[0] and 0 <= end_grid_x < self.mapped_grid.shape[1]:
+                self.mapped_grid[end_grid_y, end_grid_x] += np.log(0.9 / 0.1)  # occupied
+
+
+    def world_to_grid(self, x, y, scale=10):
+        return int(y // scale), int(x // scale)  # (row, col)
+
+    def grid_to_world(self, row, col, scale=10):
+        return col * scale + scale / 2, row * scale + scale / 2  # (x, y)
     
     def kalman_filter(self, z):
         self.kalman.update(self.vl, self.vr, self.angle, z)

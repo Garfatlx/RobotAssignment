@@ -50,3 +50,5 @@ class Sensor:
         text = font.render(str(distance), True, BLACK)
         text_rect = text.get_rect(center=(text_x, HEIGHT - 1 - text_y))
         screen.blit(text, text_rect)
+
+        return distance

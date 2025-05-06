@@ -1,5 +1,5 @@
 # Screen dimensions
-WIDTH, HEIGHT = 1200, 1000
+WIDTH, HEIGHT = 800, 1000
 
 # Colors
 WHITE = (255, 255, 255)

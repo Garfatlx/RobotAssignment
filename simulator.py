@@ -9,11 +9,11 @@ from BeaconSensor import BeaconSensor
 import Map
 
 from controls import movement_control
-from DrawUtils import draw_map_cached, draw_velocity_status
+from DrawUtils import draw_map_cached, draw_velocity_status, generate_grayscale_surface
 
 # Initialize Pygame
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH * 2, HEIGHT))
 pygame.display.set_caption("Robot Simulation")
 
 # Load map and beacons
@@ -29,11 +29,15 @@ robot.add_sensor(beacon_sensor)
 
 font = pygame.font.SysFont(None, 24)
 
+grid_surface = generate_grayscale_surface(robot.mapped_grid, scale=10)
+
 # Main game loop
 running = True
 clock = pygame.time.Clock()
+cycle = 0
 
 while running:
+    cycle += 1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -54,6 +58,11 @@ while running:
 
     beacon_sensor.draw_detected(screen, font, beacons)
     draw_velocity_status(screen, font, robot.vl, robot.vr)
+    if cycle % 100 == 0:
+        # lag prevention the map visual only updates every 100 cycles
+        grid_surface = generate_grayscale_surface(robot.mapped_grid, scale=10)
+
+    screen.blit(grid_surface, (WIDTH, 0))
 
     pygame.display.flip()
     clock.tick(60)
