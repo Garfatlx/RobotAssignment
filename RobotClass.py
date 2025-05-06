@@ -6,9 +6,10 @@ import random
 
 from const import *
 from KalmanFilter import KalmanFilter
+from ExtendedKalmanFilter import ExtendedKalmanFilter
 
 class Robot:
-    def __init__(self, x, y, angle, radius, map_data, initial_predicted_pose=None, initial_predicted_covariance=None, sensor_precision=20, movement_noise=0):
+    def __init__(self, x, y, angle, radius, map_data, initial_predicted_pose=None, initial_predicted_covariance=None, sensor_precision=20, movement_noise=0, bias_strength=0):
         self.x = x
         self.y = y
         self.angle = angle  # Angle in radians
@@ -31,9 +32,9 @@ class Robot:
             sensor = Sensor.Sensor(self, angle, precision=sensor_precision)
             self.add_sensor(sensor)
 
-        initial_pose = np.array([[x], [y], [angle]])
+        initial_pose = np.array([[x], [y], [self.angle]])
         initial_covariance = np.eye(3) * 0.1
-        self.kalman = KalmanFilter(initial_pose, initial_covariance, radius, movement_noise)
+        self.kalman = KalmanFilter(initial_pose, initial_covariance, radius, movement_noise, bias_strength)
 
         
     def add_sensor(self, sensor):

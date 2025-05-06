@@ -6,26 +6,26 @@ from BaseFilter import BaseFilter
 from const import *
 
 class KalmanFilter(BaseFilter):
-    def __init__(self, initial_pose, initial_covariance, radius, movement_noise, bias_strength=0.1):
-        self.pose = initial_pose.reshape(3, 1)
+    def __init__(self, initial_pose, initial_covariance, radius, movement_noise, bias_strength=0.01):
+        self.pose = initial_pose.reshape(3, 1) # mu 
         self.covariance = initial_covariance
         self.radius = radius
         self.noise = movement_noise
         self.bias_strength = bias_strength
         self.path = []
 
-        # Add persistent velocity bias (e.g., motor calibration drift)
+        # Add longer lasting bias (Still changed later but otherwise the noise cancelled itself quite a bit out --> boring)
         self.vl_bias = random.uniform(-bias_strength, bias_strength)
         self.vr_bias = random.uniform(-bias_strength, bias_strength)
 
     def update(self, vl, vr, angle, z):
-        # Slowly evolve the bias to simulate long-term drift
-        self.vl_bias += random.uniform(-0.001, 0.001)
-        self.vr_bias += random.uniform(-0.001, 0.001)
+        # Bias
+        self.vl_bias += random.uniform(-self.bias_strength * 0.1, self.bias_strength * 0.1)
+        self.vr_bias += random.uniform(-self.bias_strength * 0.1, self.bias_strength * 0.1)
         self.vl_bias = max(min(self.vl_bias, self.bias_strength), -self.bias_strength)
         self.vr_bias = max(min(self.vr_bias, self.bias_strength), -self.bias_strength)
 
-        # Add noise to motion commands
+        # Nois
         error_vl = (random.uniform(-self.noise, self.noise) / 100) + self.vl_bias
         error_vr = (random.uniform(-self.noise, self.noise) / 100) + self.vr_bias
         error_angle = random.uniform(-2 * math.pi * self.noise / 100, 2 * math.pi * self.noise / 100)
@@ -34,28 +34,49 @@ class KalmanFilter(BaseFilter):
         kalman_vr = max(min(vr + error_vr, MAX_SPEED), -MAX_SPEED)
         kalman_angle = angle + error_angle
 
-        # Prediction step
-        A = np.eye(3)
-        B = np.array([
-            [math.cos(kalman_angle), 0],
-            [math.sin(kalman_angle), 0],
-            [0, 1]
-        ])
-        u = np.array([[(kalman_vl + kalman_vr) / 2], [(kalman_vr - kalman_vl) / self.radius]])
-        R = np.eye(3) * 0.1
+        v = (kalman_vl + kalman_vr) / 2
+        w = (kalman_vr - kalman_vl) / self.radius
 
-        predicted_pose = A @ self.pose + B @ u
+        theta = angle # self.pose[2, 0]
+        dt = 1
+
+        # 3 Non-linear motion model g(u_t, mu_t-1)
+        fx = np.array([
+            [self.pose[0, 0] + v * math.cos(theta) * dt],
+            [self.pose[1, 0] + v * math.sin(theta) * dt],
+            [theta + w * dt]
+        ])
+
+        # 4 G_t
+
+        A = np.array([
+            [1, 0, -v * math.sin(theta)],
+            [0, 1,  v * math.cos(theta)],
+            [0, 0, 1]
+        ])
+
+        B = np.array([
+            [0.5 * math.cos(theta), 0.5 * math.cos(theta)],
+            [0.5 * math.sin(theta), 0.5 * math.sin(theta)],
+            [-1/self.radius, 1/self.radius]
+        ])
+
+        R = np.eye(3) * 0.1
+        u = np.array([[vl], [vr]])  
+
+        predicted_pose = fx
         predicted_cov = A @ self.covariance @ A.T + R
 
-        # Update step (if measurements available)
+        # Correction step
         if len(z) > 0:
             z = np.array(z).reshape(3, 1)
             C = np.eye(3)
             Q = np.eye(3) * 0.1
-            K = predicted_cov @ C.T @ np.linalg.inv(C @ predicted_cov @ C.T + Q)
-            self.pose = predicted_pose + K @ (z - C @ predicted_pose)
-            self.covariance = (np.eye(3) - K @ C) @ predicted_cov
+            K = predicted_cov @ C.T @ np.linalg.inv(C @ predicted_cov @ C.T + Q) # 6
+            self.pose = predicted_pose + K @ (z - C @ predicted_pose) # 7
+            self.covariance = (np.eye(3) - K @ C) @ predicted_cov # 8
         else:
+            # If no senosr data is avaiable
             self.pose = predicted_pose
             self.covariance = predicted_cov
 

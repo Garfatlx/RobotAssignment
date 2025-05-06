@@ -99,6 +99,7 @@ def make_map(type='empty'):
                 beacons.append(Beacon(bx, by, i + 1))
 
         map[center_x - 10:center_x + 10, center_y - 10:center_y + 10] = 0  # open central hub
+        # map[WIDTH // 2 - 100:WIDTH // 2 + 100, WIDTH // 2 + 199:WIDTH // 2 + 200] = 1
 
 
     elif type == 'boundary_spokes':

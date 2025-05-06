@@ -4,14 +4,26 @@ import random
 from BaseFilter import BaseFilter
 
 class ExtendedKalmanFilter(BaseFilter):
-    def __init__(self, initial_pose, initial_covariance, radius, movement_noise):
+    def __init__(self, initial_pose, initial_covariance, radius, movement_noise, bias_strength=0.01):
         self.pose = initial_pose.reshape(3, 1)
         self.covariance = initial_covariance
         self.radius = radius
         self.noise = movement_noise
+        self.bias_strength = bias_strength
         self.path = []
 
+        # Add longer lasting bias (Still changed later but otherwise the noise cancelled itself quite a bit out --> boring)
+        self.vl_bias = random.uniform(-bias_strength, bias_strength)
+        self.vr_bias = random.uniform(-bias_strength, bias_strength)
+
     def update(self, vl, vr, angle, z):
+        # Bias
+        self.vl_bias += random.uniform(-self.bias_strength * 0.1, self.bias_strength * 0.1)
+        self.vr_bias += random.uniform(-self.bias_strength * 0.1, self.bias_strength * 0.1)
+        self.vl_bias = max(min(self.vl_bias, self.bias_strength), -self.bias_strength)
+        self.vr_bias = max(min(self.vr_bias, self.bias_strength), -self.bias_strength)
+
+        # Noise
         error_vl = (random.uniform(-self.noise, self.noise) / 100)
         error_vr = (random.uniform(-self.noise, self.noise) / 100)
         error_angle = random.uniform(-2 * math.pi * self.noise / 100, 2 * math.pi * self.noise / 100)
@@ -23,7 +35,7 @@ class ExtendedKalmanFilter(BaseFilter):
         v = (vl + vr) / 2
         w = (vr - vl) / self.radius
 
-        theta = self.pose[2, 0]
+        theta = angle #self.pose[2, 0]
         dt = 1  # assuming discrete time step of 1
 
         # Non-linear motion model
@@ -40,7 +52,7 @@ class ExtendedKalmanFilter(BaseFilter):
             [0, 0, 1]
         ])
 
-        # Jacobian of motion model w.r.t. control (approx)
+        # Jacobian of motion model 
         B = np.array([
             [0.5 * math.cos(theta), 0.5 * math.cos(theta)],
             [0.5 * math.sin(theta), 0.5 * math.sin(theta)],

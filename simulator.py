@@ -24,7 +24,7 @@ draw_map_cached(map_surface, map)
 robot = Robot.Robot(WIDTH // 2, HEIGHT - 50, -1.2, ROBOT_RADIUS, map)
 
 # Add beacon sensor
-beacon_sensor = BeaconSensor(robot, relative_angle=0, fov=math.radians(360), range=200, precision=5)
+beacon_sensor = BeaconSensor(robot, relative_angle=0, fov=math.radians(360), range=200, precision=0)
 robot.add_sensor(beacon_sensor)
 
 font = pygame.font.SysFont(None, 24)
