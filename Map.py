@@ -101,6 +101,45 @@ def make_map(type='empty'):
         map[center_x - 10:center_x + 10, center_y - 10:center_y + 10] = 0  # open central hub
         # map[WIDTH // 2 - 100:WIDTH // 2 + 100, WIDTH // 2 + 199:WIDTH // 2 + 200] = 1
 
+    elif type == 'lalilu':
+        map[0:WIDTH // 2 + 100, HEIGHT-150:HEIGHT-149] = 1
+        beacons.append(Beacon(100, HEIGHT-149, 10))
+        map[WIDTH // 2 - 100:WIDTH, HEIGHT-350:HEIGHT-299] = 1
+        map[149:150, 0:HEIGHT//2] = 1
+        beacons.append(Beacon(149, HEIGHT//2, 11))
+        map[299:300, 150:HEIGHT//2+150] = 1
+        beacons.append(Beacon(299, HEIGHT//2+150, 12))
+        beacons.append(Beacon(299, 150, 10))
+        center_x, center_y = WIDTH // 2, HEIGHT // 2
+        branch_length = 150
+        spacing = 80
+        num_branches = 8
+        angle_step = 2 * np.pi / num_branches
+
+        for i in range(num_branches):
+            angle = i * angle_step
+            for j in range(branch_length):
+                x = int(center_x + j * np.cos(angle))
+                y = int(center_y + j * np.sin(angle))
+                if 0 <= x < WIDTH and 0 <= y < HEIGHT:
+                    map[x, y] = 0  # Clear path
+
+            # Add walls around corridor
+            for offset in [-1, 1]:
+                for j in range(branch_length):
+                    x = int(center_x + j * np.cos(angle) + offset * np.sin(angle))
+                    y = int(center_y + j * np.sin(angle) - offset * np.cos(angle))
+                    if 0 <= x < WIDTH and 0 <= y < HEIGHT:
+                        map[x, y] = 1  # Wall
+
+            # Place beacon at end of each spoke
+            bx = int(center_x + branch_length * np.cos(angle))
+            by = int(center_y + branch_length * np.sin(angle))
+            if 0 <= bx < WIDTH and 0 <= by < HEIGHT:
+                beacons.append(Beacon(bx, by, i + 1))
+
+        map[center_x - 10:center_x + 10, center_y - 10:center_y + 10] = 0
+
 
     elif type == 'boundary_spokes':
         spacing = 100

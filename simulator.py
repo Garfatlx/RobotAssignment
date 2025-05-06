@@ -17,7 +17,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Robot Simulation")
 
 # Load map and beacons
-map, beacons, map_surface = Map.make_map(type='spokes')
+map, beacons, map_surface = Map.make_map(type='lalilu')
 draw_map_cached(map_surface, map)
 
 # Create robot
