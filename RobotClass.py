@@ -9,6 +9,7 @@ from KalmanFilter import KalmanFilter
 from ExtendedKalmanFilter import ExtendedKalmanFilter
 from skimage.draw import line
 
+
 class Robot:
     def __init__(self, x, y, angle, radius, map_data, initial_predicted_pose=None, initial_predicted_covariance=None, sensor_precision=20, movement_noise=0, bias_strength=0):
         self.x = x
@@ -20,6 +21,7 @@ class Robot:
         self.map_height = map_data.shape[1]
         self.grid_scale = 10 # Normal resoulution leads to lags so scaled down 10 pixel a tile
         self.mapped_grid = np.zeros((self.map_height // self.grid_scale, self.map_width // self.grid_scale))
+        
 
 
         self.vl = 1
@@ -27,6 +29,8 @@ class Robot:
         self.vl_decay = 0
         self.vr_decay = 0
         self.movement_noise = movement_noise
+
+        self.collision_detected = False
         
         self.path = []
 
@@ -112,10 +116,13 @@ class Robot:
         self.y = max(self.radius + epsilon, min(self.map_height - self.radius - epsilon, self.y))
 
         self.path.append((self.x, self.y))
+        self.collision_detected = collision_detected
 
 
     def get_pos(self):
         return self.x, self.y, self.angle 
+    def get_collision(self):
+        return self.collision_detected
     
     def set_vl(self, forward=True):
         self.vl_decay = 0
@@ -260,3 +267,17 @@ class Robot:
     
     def kalman_filter(self, z):
         self.kalman.update(self.vl, self.vr, self.angle, z)
+
+    def clone(self):
+        return Robot(self.x, self.y, self.angle, self.radius, self.map, initial_predicted_pose=self.kalman.pose, initial_predicted_covariance=self.kalman.covariance, sensor_precision=self.sensors[0].precision, movement_noise=self.movement_noise)
+    def destory(self):
+        self.sensors = []
+        self.path = []
+        self.mapped_grid = np.zeros((self.map_height // self.grid_scale, self.map_width // self.grid_scale))
+        self.mapped_score=0
+        self.kalman = None
+    def get_mapped_grid(self):
+        return self.mapped_grid
+
+    def generate_navigation_control(self, target_x, target_y):
+        pass

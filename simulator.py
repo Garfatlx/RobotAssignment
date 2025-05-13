@@ -61,6 +61,7 @@ while running:
     if cycle % 100 == 0:
         # lag prevention the map visual only updates every 100 cycles
         grid_surface = generate_grayscale_surface(robot.mapped_grid, scale=10)
+        print("mapscore", np.sum(np.abs(robot.mapped_grid)))
 
     screen.blit(grid_surface, (WIDTH, 0))
 
