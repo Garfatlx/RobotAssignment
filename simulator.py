@@ -46,6 +46,8 @@ while running:
             running = False
 
     # movement_control(robot, "direct")  
+
+    # GA control
     if(action_process == 0):
         ga_agent = NavigatorGA(POPULATION_SIZE, MUTATION_RATE, robot, GENERATIONS, SIMULATION_STEPS, STEP_SIZE)
         acrions = ga_agent.get_navigation()
@@ -57,7 +59,7 @@ while running:
     if action_process >= SIMULATION_STEPS*STEP_SIZE:
         action_process = 0
         step = 0
-    
+    # GA control end
 
 
     robot.move(robot.vl, robot.vr)
