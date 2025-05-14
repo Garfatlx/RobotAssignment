@@ -11,6 +11,8 @@ import Map
 from controls import movement_control
 from DrawUtils import draw_map_cached, draw_velocity_status, generate_grayscale_surface
 
+from navigator_ga import NavigatorGA
+
 # Initialize Pygame
 pygame.init()
 screen = pygame.display.set_mode((WIDTH * 2, HEIGHT))
@@ -35,14 +37,28 @@ grid_surface = generate_grayscale_surface(robot.mapped_grid, scale=10)
 running = True
 clock = pygame.time.Clock()
 cycle = 0
-
+action_process=0
+step=0
 while running:
     cycle += 1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    movement_control(robot, "direct")  
+    # movement_control(robot, "direct")  
+    if(action_process == 0):
+        ga_agent = NavigatorGA(POPULATION_SIZE, MUTATION_RATE, robot, GENERATIONS, SIMULATION_STEPS, STEP_SIZE)
+        acrions = ga_agent.get_navigation()
+    action_process+=1
+    if acrions[0][step]!= -1: robot.set_vl(acrions[0][step])
+    if acrions[1][step]!= -1: robot.set_vr(acrions[1][step])
+    if action_process%STEP_SIZE == 0:
+        step+=1
+    if action_process >= SIMULATION_STEPS*STEP_SIZE:
+        action_process = 0
+        step = 0
+    
+
 
     robot.move(robot.vl, robot.vr)
 
@@ -66,6 +82,6 @@ while running:
     screen.blit(grid_surface, (WIDTH, 0))
 
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(20)
 
 pygame.quit()

@@ -9,6 +9,9 @@ from KalmanFilter import KalmanFilter
 from ExtendedKalmanFilter import ExtendedKalmanFilter
 from skimage.draw import line
 
+from navigator_ga import NavigatorGA
+
+
 
 class Robot:
     def __init__(self, x, y, angle, radius, map_data, initial_predicted_pose=None, initial_predicted_covariance=None, sensor_precision=20, movement_noise=0, bias_strength=0):
@@ -117,6 +120,8 @@ class Robot:
 
         self.path.append((self.x, self.y))
         self.collision_detected = collision_detected
+        for sensor in self.sensors:
+            self.update_map(sensor.get_distance(self.map), sensor.relative_angle)
 
 
     def get_pos(self):
@@ -278,6 +283,3 @@ class Robot:
         self.kalman = None
     def get_mapped_grid(self):
         return self.mapped_grid
-
-    def generate_navigation_control(self, target_x, target_y):
-        pass

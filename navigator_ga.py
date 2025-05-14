@@ -3,9 +3,10 @@ import random
 import numpy as np
 from ga.individual import Individual
 from ga.operators import crossover, mutation
+from ga.HeapSort import sort
 
 class NavigatorGA:
-    def __init__(self, population_size ,mutation_rate,robot,simulationsteps=20,stepsize=10):
+    def __init__(self, population_size ,mutation_rate,robot,generations=50,simulationsteps=20,stepsize=10):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.simulationsteps = simulationsteps
@@ -14,6 +15,7 @@ class NavigatorGA:
         self.best_individual = None
         self.robot = robot
         self.stepsize = stepsize
+        self.generations = generations
 
     def generate_population(self):
         """
@@ -40,15 +42,17 @@ class NavigatorGA:
                 if collision: break
             if collision: break
 
-        map_score = np.log(np.sum(np.abs(robot_clone.get_mapped_grid()))/10000)
+        # map_score = np.log(np.sum(np.abs(robot_clone.get_mapped_grid()))/10000)
+        map_score = np.sum(np.abs(robot_clone.get_mapped_grid()))
         if collision:
-            fitness = -100
+            fitness =1
         else:
-            fitness = map_score*(robot_clone.vl + robot_clone.vr) / 2
+            fitness = map_score*np.abs((robot_clone.vl + robot_clone.vr) / 2)
         individual.set_fitness(fitness)
+        print(f"Fitness: {fitness}")
     
     def select_parents(self):
-        fitness_values = [individual.get_fitness for individual in self.population]
+        fitness_values = [individual.get_fitness() for individual in self.population]
         total_fitness = sum(fitness_values)
         probabilities = [fitness / total_fitness for fitness in fitness_values]
         selected_index = np.random.choice(len(self.population), p=probabilities)
@@ -61,16 +65,44 @@ class NavigatorGA:
         parent1clone = parent1.clone()
         parent2clone = parent2.clone()
         offspring1, offspring2 = crossover(parent1clone.get_chromosome(), parent2clone.get_chromosome())
-        offspring1=self.evaluate_fitness(offspring1)
-        return Individual(offspring1), Individual(offspring2)
+        self.evaluate_fitness(offspring1)
+        self.evaluate_fitness(offspring2)
+        return offspring1, offspring2
     
     def mutate(self, individual):
         """
         Mutates an individual with a certain mutation rate.
         """
-        mutated_chromosome = mutation(individual.clone(), self.mutation_rate)
-        individual.replace(mutated_chromosome)
+        mutation(individual, self.mutation_rate)
+        # individual.replace(mutated_chromosome)
+
+    def get_navigation(self):
+        """
+        Main loop for the genetic algorithm.
+        """
+        for i in range(self.population_size):
+                self.evaluate_fitness(self.population[i])
+        sort(self.population)
+        for generation in range(self.generations):
+    
+            
+            parent1 = self.select_parents()
+            parent2 = self.select_parents()
+            offspring1, offspring2 = self.crossover(parent1, parent2)
+            self.mutate(offspring1)
+            self.mutate(offspring2)
+            self.population[-1].replace(offspring1)
+            self.population[-2].replace(offspring2)
+
+            sort(self.population)
+
+            self.best_individual = self.population[0]
+            print(f"Generation {generation + 1}: Best Fitness = {self.best_individual.get_fitness()}")
+        return self.best_individual.get_chromosome()
+
 if __name__ == "__main__":
     # Example usage
-    print(np.random.choice([-1,0,1],size=(2,10)))
+    ga_agent = NavigatorGA(10, 0.01, None, generations=50, simulationsteps=20, stepsize=10)
+    ga_agent.generate_population()
+    print(ga_agent.population[0].get_chromosome())
     
