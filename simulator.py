@@ -45,21 +45,8 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    # movement_control(robot, "direct")  
+    movement_control(robot, "direct")  
 
-    # GA control
-    if(action_process == 0):
-        ga_agent = NavigatorGA(POPULATION_SIZE, MUTATION_RATE, robot, GENERATIONS, SIMULATION_STEPS, STEP_SIZE)
-        acrions = ga_agent.get_navigation()
-    action_process+=1
-    if acrions[0][step]!= -1: robot.set_vl(acrions[0][step])
-    if acrions[1][step]!= -1: robot.set_vr(acrions[1][step])
-    if action_process%STEP_SIZE == 0:
-        step+=1
-    if action_process >= SIMULATION_STEPS*STEP_SIZE:
-        action_process = 0
-        step = 0
-    # GA control end
 
 
     robot.move(robot.vl, robot.vr)

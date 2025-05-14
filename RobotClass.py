@@ -275,7 +275,7 @@ class Robot:
 
     def clone(self):
         return Robot(self.x, self.y, self.angle, self.radius, self.map, initial_predicted_pose=self.kalman.pose, initial_predicted_covariance=self.kalman.covariance, sensor_precision=self.sensors[0].precision, movement_noise=self.movement_noise)
-    def destory(self):
+    def destroy(self):
         self.sensors = []
         self.path = []
         self.mapped_grid = np.zeros((self.map_height // self.grid_scale, self.map_width // self.grid_scale))
