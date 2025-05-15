@@ -32,7 +32,7 @@ grid_surface = generate_grayscale_surface(robot.mapped_grid, scale=10)
 
 # Evolve neural network controller
 ga = NavigatorGA(population_size=20, mutation_rate=0.1, map_data=map_data, beacons=beacons)
-controller = ga.evolve(generations=10, steps=1000)
+controller = ga.evolve(generations=10, steps=300)
 
 async def main():
     global grid_surface

@@ -104,7 +104,7 @@ class NavigatorGA:
         # distance_to_beacon = math.sqrt((x - beacon_x)**2 + (y - beacon_y)**2)
         # fitness = -distance_to_beacon - 100 * collisions
         finalmapscore = np.sum(np.abs(robot.get_mapped_grid()))/20000
-        fitness = (fitness/steps)*finalmapscore - collisions
+        fitness = fitness/steps - collisions
         robot.destroy()
         return fitness
     def sigmoid(self, x):
