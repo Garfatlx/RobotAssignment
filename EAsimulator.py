@@ -32,7 +32,7 @@ grid_surface = generate_grayscale_surface(robot.mapped_grid, scale=10)
 
 # Evolve neural network controller
 ga = NavigatorGA(population_size=20, mutation_rate=0.1, map_data=map_data, beacons=beacons)
-controller = ga.evolve(generations=10, steps=200)
+controller = ga.evolve(generations=10, steps=1000)
 
 async def main():
     global grid_surface
@@ -73,8 +73,8 @@ async def main():
         screen.blit(grid_surface, (WIDTH, 0))
 
         pygame.display.flip()
-        clock.tick(20)
-        await asyncio.sleep(1.0 / 20)  # Control frame rate
+        clock.tick(60)
+        # await asyncio.sleep(1.0 / 20)  # Control frame rate
 
     pygame.quit()
 

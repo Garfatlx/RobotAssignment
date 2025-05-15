@@ -80,6 +80,7 @@ class NavigatorGA:
         nn.set_weights(weights)
 
         collisions = 0
+        fitness = 0
         for _ in range(steps):
             # Get sensor readings
             sensor_readings = [sensor.get_distance(self.map_data) for sensor in robot.sensors[:-1]]
@@ -96,15 +97,26 @@ class NavigatorGA:
             # Check collisions
             if robot.get_collision():
                 collisions += 1
-
-        # Fitness: minimize distance to first beacon, penalize collisions
-        x, y, _ = robot.get_pos()
-        beacon_x, beacon_y = self.beacons[0].x, self.beacons[0].y
-        distance_to_beacon = math.sqrt((x - beacon_x)**2 + (y - beacon_y)**2)
-        fitness = -distance_to_beacon - 100 * collisions
+            fitness += (robot.vl + robot.vr)*(1-(np.abs(robot.vl - robot.vr))**2)
+        # # Fitness: minimize distance to first beacon, penalize collisions
+        # x, y, _ = robot.get_pos()
+        # beacon_x, beacon_y = self.beacons[0].x, self.beacons[0].y
+        # distance_to_beacon = math.sqrt((x - beacon_x)**2 + (y - beacon_y)**2)
+        # fitness = -distance_to_beacon - 100 * collisions
+        finalmapscore = np.sum(np.abs(robot.get_mapped_grid()))/20000
+        fitness = (fitness/steps)*finalmapscore - collisions
         robot.destroy()
         return fitness
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
 
+    def weighted_bce(self, labels, logits, w_1=2.0, w_0=1.0):
+        probs = self.sigmoid(logits)
+        eps = 1e-9  # for numerical stability
+        return -np.mean(
+            w_1 * labels * np.log(probs + eps) +
+            w_0 * (1 - labels) * np.log(1 - probs + eps)
+        )
     def select_parent(self):
         # Tournament selection
         tournament_size = 5

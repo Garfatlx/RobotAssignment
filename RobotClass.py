@@ -9,7 +9,6 @@ from KalmanFilter import KalmanFilter
 from ExtendedKalmanFilter import ExtendedKalmanFilter
 from skimage.draw import line
 
-from navigator_ga import NavigatorGA
 
 
 
@@ -208,7 +207,7 @@ class Robot:
 
         for sensor in self.sensors:
             distance = sensor.draw_reading(screen, font, self.map)
-            self.update_map(distance, sensor.relative_angle)
+            # self.update_map(distance, sensor.relative_angle)
 
     # def update_map(self, distance, relative_angle):
     #     # similar logic to the sensor function in reverse, separated out to account for change in sensor logic
@@ -255,6 +254,15 @@ class Robot:
 
         row_indices, col_indices = line(sensor_grid_y, sensor_grid_x, end_grid_y, end_grid_x)
 
+        # for y, x in zip(row_indices[:-1], col_indices[:-1]):
+        #     if 0 <= y < self.mapped_grid.shape[0] and 0 <= x < self.mapped_grid.shape[1]:
+        #         self.mapped_grid[y, x] += np.log(0.4 / 0.6)  # free
+        #         self.mapped_grid[y, x] = np.clip(self.mapped_grid[y,x], -5, 5)
+
+        # if distance < 200:  
+        #     if 0 <= end_grid_y < self.mapped_grid.shape[0] and 0 <= end_grid_x < self.mapped_grid.shape[1]:
+        #         self.mapped_grid[end_grid_y, end_grid_x] += np.log(0.9 / 0.1)  # occupied
+        #         self.mapped_grid[end_grid_y, end_grid_x] = np.clip(self.mapped_grid[end_grid_y, end_grid_x], -5, 5)
         for y, x in zip(row_indices[:-1], col_indices[:-1]):
             if 0 <= y < self.mapped_grid.shape[0] and 0 <= x < self.mapped_grid.shape[1]:
                 self.mapped_grid[y, x] += np.log(0.3 / 0.7)  # free

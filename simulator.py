@@ -11,7 +11,7 @@ import Map
 from controls import movement_control
 from DrawUtils import draw_map_cached, draw_velocity_status, generate_grayscale_surface
 
-from navigator_ga import NavigatorGA
+
 
 # Initialize Pygame
 pygame.init()
